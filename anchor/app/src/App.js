@@ -23,23 +23,25 @@ import { SOLANA_HOST, PROGRAM_ID } from "./config";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const programID = new PublicKey(idl.metadata.address);
+const programID = new PublicKey(PROGRAM_ID);
 const opts = {
   preflightCommitment: "processed",
 };
 
-const network = "https://api.devnet.solana.com";
-
 function App() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [transferAmount, setTransferAmount] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const wallet = useWallet();
 
   useEffect(() => {
     const getWalletBalance = async () => {
       if (wallet.publicKey) {
         try {
-          const connection = new Connection(network, opts.preflightCommitment);
+          const connection = new Connection(
+            SOLANA_HOST,
+            opts.preflightCommitment
+          );
           const balance = await connection.getBalance(wallet.publicKey);
           setWalletBalance(balance / web3.LAMPORTS_PER_SOL);
         } catch (error) {
@@ -51,7 +53,7 @@ function App() {
   }, [wallet.publicKey]);
 
   const getProvider = () => {
-    const connection = new Connection(network, opts.preflightCommitment);
+    const connection = new Connection(SOLANA_HOST, opts.preflightCommitment);
     const provider = new AnchorProvider(connection, wallet, opts);
     return provider;
   };
@@ -62,6 +64,7 @@ function App() {
       return;
     }
 
+    setIsLoading(true);
     try {
       const provider = getProvider();
       const program = new Program(idl, programID, provider);
@@ -100,37 +103,48 @@ function App() {
       alert("Transfer başarılı!");
 
       // Cüzdan bakiyesini güncelle
-      const connection = new Connection(network, opts.preflightCommitment);
+      const connection = new Connection(SOLANA_HOST, opts.preflightCommitment);
       const balance = await connection.getBalance(wallet.publicKey);
       setWalletBalance(balance / web3.LAMPORTS_PER_SOL);
+
+      // Transfer miktarını sıfırla
+      setTransferAmount("");
     } catch (error) {
       console.error("Transfer error:", error);
       alert("Transfer başarısız: " + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <WalletProvider wallets={[new PhantomWalletAdapter()]}>
-      <ConnectionProvider endpoint={network}>
+      <ConnectionProvider endpoint={SOLANA_HOST}>
         <WalletModalProvider>
           <div className="App">
             <h1>Pigeon CCTP</h1>
             <WalletMultiButton />
             {wallet.publicKey && (
               <>
+                <p>Cüzdan Adresi: {wallet.publicKey.toString()}</p>
                 <p>
                   Cüzdan Bakiyesi:{" "}
                   {walletBalance !== null
-                    ? `${walletBalance} SOL`
+                    ? `${walletBalance.toFixed(4)} SOL`
                     : "Yükleniyor..."}
                 </p>
                 <input
                   type="number"
                   value={transferAmount}
                   onChange={(e) => setTransferAmount(e.target.value)}
-                  placeholder="Transfer miktarı"
+                  placeholder="Transfer miktarı (USD)"
                 />
-                <button onClick={handleTransfer}>Transfer Et</button>
+                <button
+                  onClick={handleTransfer}
+                  disabled={isLoading || !transferAmount}
+                >
+                  {isLoading ? "İşlem Yapılıyor..." : "Transfer Et"}
+                </button>
               </>
             )}
           </div>
