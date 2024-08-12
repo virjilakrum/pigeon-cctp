@@ -8,10 +8,10 @@ skip-lint = false
 pigeon = "8BThYttJrWRaQYwZmYkZiHQrE5nLaGYCS5mWXapyEEoa"
 
 [programs.devnet]
-pigeon_cctp = "Anchor1111111111111111111111111111111111111111"
+pigeon_cctp = "8BThYttJrWRaQYwZmYkZiHQrE5nLaGYCS5mWXapyEEoa"
 
 [programs.mainnet]
-pigeon_cctp = "Anchor1111111111111111111111111111111111111111"
+pigeon_cctp = "8BThYttJrWRaQYwZmYkZiHQrE5nLaGYCS5mWXapyEEoa"
 
 [registry]
 url = "https://api.apr.dev"
