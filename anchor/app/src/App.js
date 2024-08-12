@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
   Program,
   AnchorProvider,
@@ -19,7 +19,7 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
-import { SOLANA_HOST, PROGRAM_ID } from "./config";
+import { SOLANA_HOST, PROGRAM_ID, CIRCLE_API_KEY } from "./config";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -28,9 +28,17 @@ const opts = {
   preflightCommitment: "processed",
 };
 
+// Supported chains and tokens
+const SUPPORTED_CHAINS = ["SOL", "ETH", "AVAX", "ARB"];
+const SUPPORTED_TOKENS = ["USDC"];
+
 function App() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [transferAmount, setTransferAmount] = useState("");
+  const [sourceChain, setSourceChain] = useState("SOL");
+  const [destinationChain, setDestinationChain] = useState("ETH");
+  const [destinationAddress, setDestinationAddress] = useState("");
+  const [token, setToken] = useState("USDC");
   const [isLoading, setIsLoading] = useState(false);
   const wallet = useWallet();
 
@@ -70,48 +78,44 @@ function App() {
       const program = new Program(idl, programID, provider);
 
       const circleSDK = new CircleSDK({
-        apiKey:
-          "fa39facbab0311591f155b974bf13d68:38e5215e325c4c43034e14be7b5ec51b",
-        environment: "sandbox",
+        apiKey: CIRCLE_API_KEY,
       });
 
-      // Circle CCTP ile transfer işlemi
+      // CCTP Transfer
       const transferResult = await circleSDK.cctp.transfer({
         amount: transferAmount,
-        sourceCurrency: "USD",
-        destinationCurrency: "USD",
-        destinationChain: "SOL",
-        walletAddress: wallet.publicKey.toString(),
+        sourceCurrency: token,
+        sourceChain,
+        destinationCurrency: token,
+        destinationChain,
+        walletAddress: destinationAddress,
       });
 
-      console.log("Transfer result:", transferResult);
+      console.log("CCTP Transfer result:", transferResult);
 
-      // Generate a new keypair for the transfer data account
-      const transferDataAccount = Keypair.generate();
-
-      // Anchor programını çağırarak transfer verilerini kaydetme
+      // Call Anchor program to record transfer data
       await program.methods
         .createTransfer(new BN(transferAmount))
         .accounts({
-          transferData: transferDataAccount.publicKey,
+          transferData: web3.Keypair.generate().publicKey,
           user: wallet.publicKey,
           systemProgram: web3.SystemProgram.programId,
         })
-        .signers([transferDataAccount])
         .rpc();
 
-      alert("Transfer başarılı!");
+      alert(`Transfer successful from ${sourceChain} to ${destinationChain}!`);
 
-      // Cüzdan bakiyesini güncelle
+      // Update wallet balance
       const connection = new Connection(SOLANA_HOST, opts.preflightCommitment);
       const balance = await connection.getBalance(wallet.publicKey);
       setWalletBalance(balance / web3.LAMPORTS_PER_SOL);
 
-      // Transfer miktarını sıfırla
+      // Reset transfer amount and destination address
       setTransferAmount("");
+      setDestinationAddress("");
     } catch (error) {
       console.error("Transfer error:", error);
-      alert("Transfer başarısız: " + error.message);
+      alert("Transfer failed: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -125,27 +129,79 @@ function App() {
             <h1>Pigeon CCTP</h1>
             <WalletMultiButton />
             {wallet.publicKey && (
-              <>
-                <p>Cüzdan Adresi: {wallet.publicKey.toString()}</p>
+              <div>
+                <p>Wallet Address: {wallet.publicKey.toString()}</p>
                 <p>
-                  Cüzdan Bakiyesi:{" "}
+                  Balance:{" "}
                   {walletBalance !== null
                     ? `${walletBalance.toFixed(4)} SOL`
-                    : "Yükleniyor..."}
+                    : "Loading..."}
                 </p>
+                <div>
+                  <label>Token: </label>
+                  <select
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                  >
+                    {SUPPORTED_TOKENS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>Source Chain: </label>
+                  <select
+                    value={sourceChain}
+                    onChange={(e) => setSourceChain(e.target.value)}
+                  >
+                    {SUPPORTED_CHAINS.map((chain) => (
+                      <option key={chain} value={chain}>
+                        {chain}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>Destination Chain: </label>
+                  <select
+                    value={destinationChain}
+                    onChange={(e) => setDestinationChain(e.target.value)}
+                  >
+                    {SUPPORTED_CHAINS.filter(
+                      (chain) => chain !== sourceChain
+                    ).map((chain) => (
+                      <option key={chain} value={chain}>
+                        {chain}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <input
                   type="number"
                   value={transferAmount}
                   onChange={(e) => setTransferAmount(e.target.value)}
-                  placeholder="Transfer miktarı (USD)"
+                  placeholder="Transfer amount"
+                />
+                <input
+                  type="text"
+                  value={destinationAddress}
+                  onChange={(e) => setDestinationAddress(e.target.value)}
+                  placeholder="Destination address"
                 />
                 <button
                   onClick={handleTransfer}
-                  disabled={isLoading || !transferAmount}
+                  disabled={
+                    isLoading ||
+                    !transferAmount ||
+                    !destinationAddress ||
+                    sourceChain === destinationChain
+                  }
                 >
-                  {isLoading ? "İşlem Yapılıyor..." : "Transfer Et"}
+                  {isLoading ? "Processing..." : "Transfer"}
                 </button>
-              </>
+              </div>
             )}
           </div>
         </WalletModalProvider>
