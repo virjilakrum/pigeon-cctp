@@ -19,6 +19,7 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
+import { SOLANA_HOST, PROGRAM_ID } from "./config";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
