@@ -17,7 +17,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <ConnectionProvider endpoint={SOLANA_HOST}>
-      <WalletProvider wallets={[new PhantomWalletAdapter()]}>
+      <WalletProvider wallets={[new PhantomWalletAdapter()]} autoConnect>
         <WalletModalProvider>
           <App />
         </WalletModalProvider>
