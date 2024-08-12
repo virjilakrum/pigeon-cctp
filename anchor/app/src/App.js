@@ -113,8 +113,6 @@ function App() {
     }
   };
 
-  // ... (rest of the component remains the same)
-
   return (
     <div className="app-container">
       <header className="app-header">
@@ -123,10 +121,81 @@ function App() {
       </header>
       {wallet.publicKey && (
         <main className="app-main">
-          {/* ... (wallet info section remains the same) */}
+          <section className="wallet-info">
+            <h2>Wallet Information</h2>
+            <p>
+              Address:{" "}
+              <span className="wallet-address">
+                {wallet.publicKey.toString()}
+              </span>
+            </p>
+            <p>
+              Balance:{" "}
+              <span className="wallet-balance">
+                {walletBalance !== null
+                  ? `${walletBalance.toFixed(4)} SOL`
+                  : "Loading..."}
+              </span>
+            </p>
+          </section>
           <section className="transfer-form">
             <h2>CCTP Transfer</h2>
-            {/* ... (form inputs remain the same) */}
+            <div className="form-group">
+              <label>Token:</label>
+              <select value={token} onChange={(e) => setToken(e.target.value)}>
+                {SUPPORTED_TOKENS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Source Chain:</label>
+              <select
+                value={sourceChain}
+                onChange={(e) => setSourceChain(e.target.value)}
+              >
+                {SUPPORTED_CHAINS.map((chain) => (
+                  <option key={chain} value={chain}>
+                    {chain}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Destination Chain:</label>
+              <select
+                value={destinationChain}
+                onChange={(e) => setDestinationChain(e.target.value)}
+              >
+                {SUPPORTED_CHAINS.filter((chain) => chain !== sourceChain).map(
+                  (chain) => (
+                    <option key={chain} value={chain}>
+                      {chain}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Amount:</label>
+              <input
+                type="number"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                placeholder="Enter amount"
+              />
+            </div>
+            <div className="form-group">
+              <label>Destination Address:</label>
+              <input
+                type="text"
+                value={destinationAddress}
+                onChange={(e) => setDestinationAddress(e.target.value)}
+                placeholder="Enter destination address"
+              />
+            </div>
             <button
               className="transfer-button"
               onClick={handleTransfer}
