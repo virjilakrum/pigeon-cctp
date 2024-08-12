@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@circle-fin/circle-sdk": "^2.9.0",
+    "@headlessui/react": "^2.1.2",
+    "@heroicons/react": "^2.1.5",
     "@project-serum/anchor": "^0.26.0",
     "@solana/wallet-adapter-ledger": "^0.9.25",
     "@solana/wallet-adapter-phantom": "^0.9.24",
@@ -16,10 +18,14 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "autoprefixer": "^10.4.20",
+    "ethers": "^6.13.2",
+    "postcss": "^8.4.41",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5",
+    "tailwindcss": "^3.4.9",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
