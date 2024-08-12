@@ -20,6 +20,7 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { SOLANA_HOST, PROGRAM_ID, CIRCLE_API_KEY } from "./config";
+import "./App.css";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -28,7 +29,6 @@ const opts = {
   preflightCommitment: "processed",
 };
 
-// Supported chains and tokens
 const SUPPORTED_CHAINS = ["SOL", "ETH", "AVAX", "ARB"];
 const SUPPORTED_TOKENS = ["USDC"];
 
@@ -125,83 +125,105 @@ function App() {
     <WalletProvider wallets={[new PhantomWalletAdapter()]}>
       <ConnectionProvider endpoint={SOLANA_HOST}>
         <WalletModalProvider>
-          <div className="App">
-            <h1>Pigeon CCTP</h1>
-            <WalletMultiButton />
+          <div className="app-container">
+            <header className="app-header">
+              <h1>Pigeon CCTP</h1>
+              <WalletMultiButton />
+            </header>
             {wallet.publicKey && (
-              <div>
-                <p>Wallet Address: {wallet.publicKey.toString()}</p>
-                <p>
-                  Balance:{" "}
-                  {walletBalance !== null
-                    ? `${walletBalance.toFixed(4)} SOL`
-                    : "Loading..."}
-                </p>
-                <div>
-                  <label>Token: </label>
-                  <select
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
+              <main className="app-main">
+                <section className="wallet-info">
+                  <h2>Wallet Information</h2>
+                  <p>
+                    Address:{" "}
+                    <span className="wallet-address">
+                      {wallet.publicKey.toString()}
+                    </span>
+                  </p>
+                  <p>
+                    Balance:{" "}
+                    <span className="wallet-balance">
+                      {walletBalance !== null
+                        ? `${walletBalance.toFixed(4)} SOL`
+                        : "Loading..."}
+                    </span>
+                  </p>
+                </section>
+                <section className="transfer-form">
+                  <h2>CCTP Transfer</h2>
+                  <div className="form-group">
+                    <label>Token:</label>
+                    <select
+                      value={token}
+                      onChange={(e) => setToken(e.target.value)}
+                    >
+                      {SUPPORTED_TOKENS.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Source Chain:</label>
+                    <select
+                      value={sourceChain}
+                      onChange={(e) => setSourceChain(e.target.value)}
+                    >
+                      {SUPPORTED_CHAINS.map((chain) => (
+                        <option key={chain} value={chain}>
+                          {chain}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Destination Chain:</label>
+                    <select
+                      value={destinationChain}
+                      onChange={(e) => setDestinationChain(e.target.value)}
+                    >
+                      {SUPPORTED_CHAINS.filter(
+                        (chain) => chain !== sourceChain
+                      ).map((chain) => (
+                        <option key={chain} value={chain}>
+                          {chain}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Amount:</label>
+                    <input
+                      type="number"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
+                      placeholder="Enter amount"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Destination Address:</label>
+                    <input
+                      type="text"
+                      value={destinationAddress}
+                      onChange={(e) => setDestinationAddress(e.target.value)}
+                      placeholder="Enter destination address"
+                    />
+                  </div>
+                  <button
+                    className="transfer-button"
+                    onClick={handleTransfer}
+                    disabled={
+                      isLoading ||
+                      !transferAmount ||
+                      !destinationAddress ||
+                      sourceChain === destinationChain
+                    }
                   >
-                    {SUPPORTED_TOKENS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label>Source Chain: </label>
-                  <select
-                    value={sourceChain}
-                    onChange={(e) => setSourceChain(e.target.value)}
-                  >
-                    {SUPPORTED_CHAINS.map((chain) => (
-                      <option key={chain} value={chain}>
-                        {chain}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label>Destination Chain: </label>
-                  <select
-                    value={destinationChain}
-                    onChange={(e) => setDestinationChain(e.target.value)}
-                  >
-                    {SUPPORTED_CHAINS.filter(
-                      (chain) => chain !== sourceChain
-                    ).map((chain) => (
-                      <option key={chain} value={chain}>
-                        {chain}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <input
-                  type="number"
-                  value={transferAmount}
-                  onChange={(e) => setTransferAmount(e.target.value)}
-                  placeholder="Transfer amount"
-                />
-                <input
-                  type="text"
-                  value={destinationAddress}
-                  onChange={(e) => setDestinationAddress(e.target.value)}
-                  placeholder="Destination address"
-                />
-                <button
-                  onClick={handleTransfer}
-                  disabled={
-                    isLoading ||
-                    !transferAmount ||
-                    !destinationAddress ||
-                    sourceChain === destinationChain
-                  }
-                >
-                  {isLoading ? "Processing..." : "Transfer"}
-                </button>
-              </div>
+                    {isLoading ? "Processing..." : "Transfer"}
+                  </button>
+                </section>
+              </main>
             )}
           </div>
         </WalletModalProvider>

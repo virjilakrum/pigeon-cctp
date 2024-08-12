@@ -10,7 +10,6 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { SOLANA_HOST } from "./config";
-import "react-app-polyfill/stable";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
